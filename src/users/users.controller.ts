@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Session, UseGuards, UseInterceptors } from '@nestjs/common';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { CustomSerialize } from 'src/interceptors/serialization.interceptor';
+import { AuthGuard } from '../guards/auth.guard';
+import { CustomSerialize } from '../interceptors/serialization.interceptor';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { CreateUserDto } from './dtos/create-user.dto';

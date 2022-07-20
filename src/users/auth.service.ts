@@ -19,7 +19,7 @@ export class AuthService {
         const hash = (await scrypt(password, salt, 32)) as Buffer
         const result = salt + '.' + hash.toString('hex')
 
-        return await this.usersService.create({email: email, password: result})
+        return await this.usersService.create(email, result)
     }
 
     async signin(email: string, password: string) {
