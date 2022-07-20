@@ -1,13 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
-import { CustomSerialize, SerializeInterceptor } from 'src/interceptors/serialization.interceptor';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Session, UseGuards, UseInterceptors } from '@nestjs/common';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { CustomSerialize } from 'src/interceptors/serialization.interceptor';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserDto } from './dtos/user.dto';
+import { CurrentUserInterceptor } from './interceptors/current-user.interceptor';
+import { User } from './user.entity';
 import { UsersService } from './users.service';
 
-@CustomSerialize(UserDto)
 @Controller('auth')
+@CustomSerialize(UserDto)
+@UseInterceptors(CurrentUserInterceptor)
 export class UsersController {
 
     constructor(
@@ -18,13 +23,17 @@ export class UsersController {
     }
 
     @Post("/signup")
-    createUser(@Body() body: CreateUserDto) {
-        return this.authService.signup(body.email, body.password)
+    async createUser(@Body() body: CreateUserDto, @Session() session) {
+        const user = await this.authService.signup(body.email, body.password)
+        session.userId = user.id
+        return user
     }
 
     @Post("/signin")
-    signin(@Body() body: CreateUserDto) {
-        return this.authService.signin(body.email, body.password)
+    async signin(@Body() body: CreateUserDto, @Session() session) {
+        const user = await this.authService.signin(body.email, body.password)
+        session.userId = user.id
+        return user
     }
 
     @Get("/users/:id")
@@ -34,7 +43,9 @@ export class UsersController {
     }
 
     @Get("/users")
-    findUserByEmail(@Query("email") email: string) {
+    @UseGuards(AuthGuard)
+    findUserByEmail(@CurrentUser() user: User, @Query("email") email: string) {
+        console.log("current user result: " + user)
         return this.usersService.find(email)
     }
 
